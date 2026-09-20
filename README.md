@@ -38,4 +38,5 @@ python src/visualize_results.py
 4. Publish findings
 
 ## Author
-[Your Name]
+Hrishita
+
