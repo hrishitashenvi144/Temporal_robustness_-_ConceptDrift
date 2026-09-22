@@ -1,0 +1,6 @@
+Period,F1,Type,Drift,Retrained
+period_old,0.789,Static,False,False
+period_medium,0.789,Static,False,False
+period_new,0.789,Static,False,False
+period_medium,0.7058823529411765,Adaptive,True,True
+period_new,0.7777777777777778,Adaptive,True,True

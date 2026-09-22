@@ -7,7 +7,7 @@ import numpy as np
 df = pd.read_csv('data/raw/poc_data/contracts_with_features.csv')
 
 print("=" * 60)
-print("TEMPORAL ROBUSTNESS DEMO")
+print("TEMPORAL ROBUSTNESS")
 print("=" * 60)
 
 # Get feature columns
