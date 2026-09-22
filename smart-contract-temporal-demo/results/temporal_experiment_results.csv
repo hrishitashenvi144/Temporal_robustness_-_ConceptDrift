@@ -1,0 +1,6 @@
+Period,Model,Precision,Recall,F1,Drift_Detected,Drift_Score,Retrained,Training_Samples,Evaluation_Samples
+period_old,Static,1.0,0.9411764705882353,0.9696969696969697,False,,False,30,30
+period_medium,Static,0.6666666666666666,0.47058823529411764,0.5517241379310345,False,,False,30,30
+period_new,Static,0.7777777777777778,0.4117647058823529,0.5384615384615384,False,,False,30,30
+period_medium,Adaptive_PreAdaptation,0.6666666666666666,0.47058823529411764,0.5517241379310345,True,0.13813340527749948,True,30,30
+period_new,Adaptive_PostAdaptation,0.8125,0.7647058823529411,0.7878787878787878,False,,False,60,30

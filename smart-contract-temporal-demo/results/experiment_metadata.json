@@ -1,0 +1,48 @@
+{
+  "experiment_name": "Temporal Robustness and Drift-Aware Adaptation for Ethereum Smart Contract Vulnerability Detection",
+  "experiment_version": "Phase 2 (Controlled Distribution-Shift Simulation)",
+  "random_seed": 42,
+  "model_name": "RandomForestClassifier",
+  "n_estimators": 50,
+  "drift_method": "combined",
+  "drift_threshold": 0.1,
+  "feature_columns": [
+    "lines_of_code",
+    "function_count",
+    "external_calls",
+    "requires",
+    "loops",
+    "code_length"
+  ],
+  "target_column": "has_vulnerability",
+  "cohort_order": [
+    "period_old",
+    "period_medium",
+    "period_new"
+  ],
+  "cohort_sizes": {
+    "period_old": 30,
+    "period_medium": 30,
+    "period_new": 30
+  },
+  "training_protocol": "Static model trained on period_old only. Adaptive detector trained on period_old, evaluated on period_medium before adaptation, retrained on period_old + period_medium upon drift trigger, and evaluated on unseen period_new.",
+  "adaptation_protocol": "Cumulative retraining on period_old + period_medium when feature-distribution drift exceeds threshold on period_medium. period_new is strictly held out.",
+  "dataset_description": "SmartBugs-derived POC dataset containing 6 structural Solidity features across 3 temporal cohorts.",
+  "temporal_shift_description": "Controlled multiplicative feature perturbation simulated with fixed random seed 42.",
+  "evaluation_metrics": [
+    "Precision",
+    "Recall",
+    "F1"
+  ],
+  "output_files": {
+    "results_csv": "results\\temporal_experiment_results.csv",
+    "feature_shift_csv": "results\\feature_shift_analysis.csv",
+    "metadata_json": "results\\experiment_metadata.json"
+  },
+  "leakage_verification_passed": {
+    "period_new_not_in_initial_train": true,
+    "period_new_not_in_adaptation": true,
+    "adaptation_contains_old_and_medium_only": true
+  },
+  "methodological_note": "Temporal cohorts in Phase 2 are controlled experimental cohorts with simulated feature perturbation rather than naturally observed temporal evolution. The drift detector measures feature-distribution shift P(X) and does not establish concept drift P(Y|X). Cohort period_new is strictly held out from training, retraining, scaler fitting, and adaptation decisions. Current results demonstrate the behavior of the experimental protocol, not universal real-world temporal robustness."
+}

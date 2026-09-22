@@ -1,91 +1,136 @@
 """
-Drift Detection Module
-Detects concept drift in smart contract feature distributions
+Feature-Distribution Drift Detection Module
+============================================
+
+Methodological Note:
+This detector measures feature-distribution shift P(X); it does not establish
+concept drift P(Y|X).
+
+Reference distribution: Training period features (e.g., period_old).
+Test distribution: Incoming future cohort features (e.g., period_medium).
+
+Threshold Note:
+The drift threshold (default 0.10 for Phase 2 controlled experiments) is a configured
+experimental parameter and is not claimed to be statistically optimal. Threshold
+sensitivity and calibration will be evaluated in subsequent research phases.
 """
 
-import numpy as np
-from scipy.stats import wasserstein_distance
-from scipy.stats import ks_2samp
 import logging
+from typing import Any, Dict, List
+
+import numpy as np
+from scipy.stats import ks_2samp, wasserstein_distance
 
 logger = logging.getLogger(__name__)
 
+
 class DriftDetector:
     """
-    Detects concept drift using multiple statistical methods
-    """
+    Detects feature-distribution shift P(X) using statistical distance metrics.
     
-    def __init__(self, reference_data, threshold=0.25, method='combined'):
+    Supported methods:
+    - 'combined': Average of normalized mean shift and normalized Wasserstein distance.
+    - 'wasserstein': Normalized Wasserstein distance across feature dimensions.
+    - 'ks': Kolmogorov-Smirnov 2-sample test statistic across feature dimensions.
+    """
+
+    def __init__(
+        self,
+        reference_data: np.ndarray,
+        threshold: float = 0.10,
+        method: str = "combined"
+    ):
         """
         Args:
-            reference_data: Training period features (numpy array)
-            threshold: Drift detection threshold (0-1)
-            method: 'ks', 'wasserstein', or 'combined'
+            reference_data: Feature matrix of the reference cohort (period_old).
+            threshold: Configured drift detection threshold (default: 0.10).
+            method: Distance metric to use ('combined', 'wasserstein', or 'ks').
         """
-        self.reference_data = reference_data
-        self.reference_mean = reference_data.mean(axis=0)
-        self.reference_std = reference_data.std(axis=0)
-        self.threshold = threshold
-        self.method = method
-        self.drift_history = []
-        
-        logger.info(f"Drift detector initialized with {len(reference_data)} reference samples")
-    
-    def _ks_test(self, new_data):
-        """Kolmogorov-Smirnov test for distribution shift"""
+        self.reference_data = np.asarray(reference_data, dtype=float)
+        if self.reference_data.ndim != 2:
+            raise ValueError(f"reference_data must be a 2D array, got shape {self.reference_data.shape}")
+
+        self.reference_mean = self.reference_data.mean(axis=0)
+        self.reference_std = self.reference_data.std(axis=0)
+        self.threshold = float(threshold)
+        self.method = str(method).lower()
+        self.drift_history: List[Dict[str, Any]] = []
+
+        logger.info(
+            f"Drift detector initialized with {len(self.reference_data)} reference samples, "
+            f"method='{self.method}', threshold={self.threshold:.3f}"
+        )
+
+    def _ks_test(self, new_data: np.ndarray) -> float:
+        """Kolmogorov-Smirnov test for feature-distribution shift."""
         ks_stats = []
-        
-        for i in range(new_data.shape[1]):
-            statistic, p_value = ks_2samp(self.reference_data[:, i], new_data[:, i])
+        n_features = new_data.shape[1]
+        for i in range(n_features):
+            statistic, _ = ks_2samp(self.reference_data[:, i], new_data[:, i])
             ks_stats.append(statistic)
-        
-        return np.mean(ks_stats)
-    
-    def _wasserstein_distance(self, new_data):
-        """Wasserstein distance between distributions"""
+        return float(np.mean(ks_stats))
+
+    def _wasserstein_distance(self, new_data: np.ndarray) -> float:
+        """Normalized Wasserstein distance across feature dimensions."""
         distances = []
-        
-        for i in range(new_data.shape[1]):
+        n_features = new_data.shape[1]
+        for i in range(n_features):
             dist = wasserstein_distance(self.reference_data[:, i], new_data[:, i])
             distances.append(dist)
-        
-        # Normalize by std
-        normalized = [d / (self.reference_std[i] + 1e-6) for i, d in enumerate(distances)]
-        return np.mean(normalized)
-    
-    def _mean_shift(self, new_data):
-        """Detect shift in mean"""
+
+        normalized = [
+            dist / (self.reference_std[i] + 1e-6)
+            for i, dist in enumerate(distances)
+        ]
+        return float(np.mean(normalized))
+
+    def _mean_shift(self, new_data: np.ndarray) -> float:
+        """Normalized shift in feature means."""
         mean_shift = np.abs(new_data.mean(axis=0) - self.reference_mean)
         normalized_shift = mean_shift / (self.reference_std + 1e-6)
-        return np.mean(normalized_shift)
-    
-    def detect_drift(self, new_data):
+        return float(np.mean(normalized_shift))
+
+    def detect_drift(self, new_data: np.ndarray) -> Dict[str, Any]:
         """
-        Detect if new data has significant drift
-        
+        Detect whether incoming feature data exhibits distribution shift P(X)
+        exceeding the configured threshold.
+
         Returns:
-            dict with drift_detected, drift_score, recommendation
+            Dict containing:
+            - 'drift_detected': bool
+            - 'drift_score': float
+            - 'threshold': float
+            - 'recommendation': str ('RETRAIN' or 'MONITOR')
         """
-        new_data = np.array(new_data)
-        
-        if self.method == 'ks':
+        new_data = np.asarray(new_data, dtype=float)
+        if new_data.ndim != 2:
+            raise ValueError(f"new_data must be a 2D array, got shape {new_data.shape}")
+
+        if new_data.shape[1] != self.reference_data.shape[1]:
+            raise ValueError(
+                f"Feature dimension mismatch: expected {self.reference_data.shape[1]}, "
+                f"got {new_data.shape[1]}"
+            )
+
+        if self.method == "ks":
             drift_score = self._ks_test(new_data)
-        elif self.method == 'wasserstein':
+        elif self.method == "wasserstein":
             drift_score = self._wasserstein_distance(new_data)
-        else:  # combined
+        elif self.method == "combined":
             score1 = self._mean_shift(new_data)
             score2 = self._wasserstein_distance(new_data)
-            drift_score = (score1 + score2) / 2
-        
-        drift_detected = drift_score > self.threshold
-        
+            drift_score = (score1 + score2) / 2.0
+        else:
+            raise ValueError(f"Unknown drift detection method: {self.method}")
+
+        drift_detected = bool(drift_score > self.threshold)
+
         result = {
-            'drift_detected': drift_detected,
-            'drift_score': drift_score,
-            'threshold': self.threshold,
-            'recommendation': 'RETRAIN' if drift_detected else 'MONITOR'
+            "drift_detected": drift_detected,
+            "drift_score": float(drift_score),
+            "threshold": float(self.threshold),
+            "recommendation": "RETRAIN" if drift_detected else "MONITOR"
         }
-        
+
         self.drift_history.append(result)
-        
         return result
