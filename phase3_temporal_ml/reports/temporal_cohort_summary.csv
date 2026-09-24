@@ -1,0 +1,5 @@
+cohort,contract_count
+train,9950
+validation,1014
+adaptation,7166
+test,4200

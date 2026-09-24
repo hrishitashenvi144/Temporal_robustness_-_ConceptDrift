@@ -1,0 +1,16 @@
+cohort,compiler_family,contract_count
+validation,v0.8.x,950
+validation,v0.6.x,29
+validation,v0.7.x,19
+validation,v0.5.x,9
+validation,v0.4.x,7
+adaptation,v0.8.x,6855
+adaptation,v0.6.x,158
+adaptation,v0.5.x,62
+adaptation,v0.7.x,50
+adaptation,v0.4.x,41
+test,v0.8.x,4118
+test,v0.6.x,37
+test,v0.7.x,23
+test,v0.5.x,13
+test,v0.4.x,9

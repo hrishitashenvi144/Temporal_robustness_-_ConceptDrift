@@ -1,0 +1,65 @@
+--- Feature audit summary ---
+Total original PRE columns: 222
+Retained numeric features: 215
+Excluded features: 7
+Excluded columns:
+  contractID: identifier (contractID)
+  timeStamp: temporal leakage (deployment timestamp)
+  CompilerVersion: compiler version (reserved for analysis)
+  EVMVersion: categorical/non-numeric (baseline numeric-only)
+  LicenseType: categorical/non-numeric (baseline numeric-only)
+  mostFrequentOpcode: categorical/non-numeric (baseline numeric-only)
+  Experimental Features: non-numeric column
+
+First 20 retained features:
+  OptimizationUsed
+  Runs
+  NoOfExternalLib
+  Logic Contracts
+  Interfaces
+  Lines
+  nLines
+  nSLOC
+  Comment Lines
+  Complex. Score
+  Contracts
+  Libraries
+  Abstract
+  Public Functions
+  Payable Functions
+  External Functions
+  Internal Functions
+  Private Functions
+  Pure Functions
+  View Functions
+
+Missing value counts (retained):
+  None
+
+Zero-variance features (retained):
+  None
+
+Compiler family distribution by temporal cohort:
+{
+  "validation": {
+    "v0.8.x": 950,
+    "v0.6.x": 29,
+    "v0.7.x": 19,
+    "v0.5.x": 9,
+    "v0.4.x": 7
+  },
+  "adaptation": {
+    "v0.8.x": 6855,
+    "v0.6.x": 158,
+    "v0.5.x": 62,
+    "v0.7.x": 50,
+    "v0.4.x": 41
+  },
+  "test": {
+    "v0.8.x": 4118,
+    "v0.6.x": 37,
+    "v0.7.x": 23,
+    "v0.5.x": 13,
+    "v0.4.x": 9
+  }
+}

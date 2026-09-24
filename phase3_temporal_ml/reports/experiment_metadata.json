@@ -1,0 +1,69 @@
+{
+  "feature_count": 215,
+  "excluded_columns": [
+    "CompilerVersion",
+    "timeStamp",
+    "mostFrequentOpcode",
+    "Experimental Features",
+    "EVMVersion",
+    "contractID",
+    "LicenseType"
+  ],
+  "target_columns": [
+    "Reentrancy",
+    "Access Control",
+    "Arithmetic",
+    "Unchecked Return Values",
+    "DoS",
+    "Bad Randomness",
+    "Front Running",
+    "Time manipulation"
+  ],
+  "preprocessing": {
+    "scaler": "StandardScaler (fit on training data only) for LogisticRegression",
+    "class_weight": "balanced",
+    "random_state": 42,
+    "threshold": 0.5
+  },
+  "model_hyperparameters": {
+    "LogisticRegression": {
+      "solver": "lbfgs",
+      "max_iter": 1000
+    },
+    "RandomForest": {
+      "n_estimators": 200,
+      "max_features": "auto"
+    }
+  },
+  "chronological_split": {
+    "train_years": [
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021
+    ],
+    "validation_year": 2022,
+    "adaptation_year": 2023,
+    "test_year": 2024
+  },
+  "compiler_analysis": {
+    "family_derivation": "v<major>.<minor>.x extracted via regex",
+    "notes": "Strong year/compiler confounding observed in Phase 3A; this analysis reports distributions only."
+  },
+  "leakage_controls": {
+    "opcode_fingerprint_audit": {
+      "unique_fingerprints": 22328,
+      "exact_duplicate_families": 2,
+      "contracts_in_duplicate_families": 4,
+      "cross_year_exact_duplicates": 0,
+      "limitations": "Source\u2011level near\u2011duplicate and project\u2011level clone leakage not assessed."
+    }
+  },
+  "reproducibility": {
+    "random_state": 42,
+    "deterministic": true,
+    "run_twice_hash_check": true
+  }
+}
