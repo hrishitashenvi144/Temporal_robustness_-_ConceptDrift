@@ -1,0 +1,5 @@
+# Ignore raw datasets, zip archives, and large files in audit directory
+raw/
+*.zip
+*.tar.gz
+*.7z

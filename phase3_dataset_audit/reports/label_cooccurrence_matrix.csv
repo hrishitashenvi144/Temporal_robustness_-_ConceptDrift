@@ -1,0 +1,9 @@
+,reentrancy,access_control,arithmetic,unchecked_low_level_calls,dos,bad_randomness,front_running,time_manipulation
+reentrancy,11400,10712,6016,4529,2683,464,426,3705
+access_control,10712,16723,8356,5701,3469,589,570,4703
+arithmetic,6016,8356,9542,3790,1966,359,254,3236
+unchecked_low_level_calls,4529,5701,3790,5911,1641,199,117,2410
+dos,2683,3469,1966,1641,3781,233,295,1500
+bad_randomness,464,589,359,199,233,634,76,257
+front_running,426,570,254,117,295,76,606,230
+time_manipulation,3705,4703,3236,2410,1500,257,230,6322

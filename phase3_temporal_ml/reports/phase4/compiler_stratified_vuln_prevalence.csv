@@ -1,0 +1,161 @@
+cohort,compiler_family,vulnerability,total_contracts,positive_contracts,prevalence
+train,v0.4.x,Reentrancy,8872,4296,0.4842200180342651
+train,v0.4.x,Access Control,8872,7108,0.8011722272317403
+train,v0.4.x,Arithmetic,8872,2517,0.2837015329125338
+train,v0.4.x,Unchecked Return Values,8872,1443,0.16264652840396754
+train,v0.4.x,DoS,8872,2254,0.25405770964833185
+train,v0.4.x,Bad Randomness,8872,378,0.04260595130748422
+train,v0.4.x,Front Running,8872,588,0.06627592425608657
+train,v0.4.x,Time manipulation,8872,2233,0.25169071235347157
+train,v0.5.x,Reentrancy,188,45,0.2393617021276596
+train,v0.5.x,Access Control,188,138,0.7340425531914894
+train,v0.5.x,Arithmetic,188,85,0.4521276595744681
+train,v0.5.x,Unchecked Return Values,188,39,0.2074468085106383
+train,v0.5.x,DoS,188,29,0.15425531914893617
+train,v0.5.x,Bad Randomness,188,9,0.047872340425531915
+train,v0.5.x,Front Running,188,1,0.005319148936170213
+train,v0.5.x,Time manipulation,188,25,0.13297872340425532
+train,v0.6.x,Reentrancy,265,72,0.27169811320754716
+train,v0.6.x,Access Control,265,160,0.6037735849056604
+train,v0.6.x,Arithmetic,265,206,0.7773584905660378
+train,v0.6.x,Unchecked Return Values,265,160,0.6037735849056604
+train,v0.6.x,DoS,265,88,0.3320754716981132
+train,v0.6.x,Bad Randomness,265,4,0.01509433962264151
+train,v0.6.x,Front Running,265,0,0.0
+train,v0.6.x,Time manipulation,265,84,0.3169811320754717
+train,v0.7.x,Reentrancy,114,30,0.2631578947368421
+train,v0.7.x,Access Control,114,91,0.7982456140350878
+train,v0.7.x,Arithmetic,114,72,0.631578947368421
+train,v0.7.x,Unchecked Return Values,114,63,0.5526315789473685
+train,v0.7.x,DoS,114,39,0.34210526315789475
+train,v0.7.x,Bad Randomness,114,8,0.07017543859649122
+train,v0.7.x,Front Running,114,0,0.0
+train,v0.7.x,Time manipulation,114,32,0.2807017543859649
+train,v0.8.x,Reentrancy,511,135,0.26418786692759294
+train,v0.8.x,Access Control,511,338,0.6614481409001957
+train,v0.8.x,Arithmetic,511,389,0.761252446183953
+train,v0.8.x,Unchecked Return Values,511,158,0.30919765166340507
+train,v0.8.x,DoS,511,117,0.22896281800391388
+train,v0.8.x,Bad Randomness,511,17,0.033268101761252444
+train,v0.8.x,Front Running,511,1,0.0019569471624266144
+train,v0.8.x,Time manipulation,511,156,0.30528375733855184
+validation,v0.4.x,Reentrancy,7,3,0.42857142857142855
+validation,v0.4.x,Access Control,7,4,0.5714285714285714
+validation,v0.4.x,Arithmetic,7,5,0.7142857142857143
+validation,v0.4.x,Unchecked Return Values,7,1,0.14285714285714285
+validation,v0.4.x,DoS,7,2,0.2857142857142857
+validation,v0.4.x,Bad Randomness,7,0,0.0
+validation,v0.4.x,Front Running,7,0,0.0
+validation,v0.4.x,Time manipulation,7,0,0.0
+validation,v0.5.x,Reentrancy,9,1,0.1111111111111111
+validation,v0.5.x,Access Control,9,4,0.4444444444444444
+validation,v0.5.x,Arithmetic,9,3,0.3333333333333333
+validation,v0.5.x,Unchecked Return Values,9,3,0.3333333333333333
+validation,v0.5.x,DoS,9,2,0.2222222222222222
+validation,v0.5.x,Bad Randomness,9,1,0.1111111111111111
+validation,v0.5.x,Front Running,9,0,0.0
+validation,v0.5.x,Time manipulation,9,1,0.1111111111111111
+validation,v0.6.x,Reentrancy,29,5,0.1724137931034483
+validation,v0.6.x,Access Control,29,23,0.7931034482758621
+validation,v0.6.x,Arithmetic,29,23,0.7931034482758621
+validation,v0.6.x,Unchecked Return Values,29,15,0.5172413793103449
+validation,v0.6.x,DoS,29,5,0.1724137931034483
+validation,v0.6.x,Bad Randomness,29,1,0.034482758620689655
+validation,v0.6.x,Front Running,29,0,0.0
+validation,v0.6.x,Time manipulation,29,10,0.3448275862068966
+validation,v0.7.x,Reentrancy,19,11,0.5789473684210527
+validation,v0.7.x,Access Control,19,18,0.9473684210526315
+validation,v0.7.x,Arithmetic,19,14,0.7368421052631579
+validation,v0.7.x,Unchecked Return Values,19,14,0.7368421052631579
+validation,v0.7.x,DoS,19,10,0.5263157894736842
+validation,v0.7.x,Bad Randomness,19,0,0.0
+validation,v0.7.x,Front Running,19,0,0.0
+validation,v0.7.x,Time manipulation,19,10,0.5263157894736842
+validation,v0.8.x,Reentrancy,950,486,0.511578947368421
+validation,v0.8.x,Access Control,950,749,0.7884210526315789
+validation,v0.8.x,Arithmetic,950,631,0.6642105263157895
+validation,v0.8.x,Unchecked Return Values,950,456,0.48
+validation,v0.8.x,DoS,950,199,0.2094736842105263
+validation,v0.8.x,Bad Randomness,950,19,0.02
+validation,v0.8.x,Front Running,950,0,0.0
+validation,v0.8.x,Time manipulation,950,451,0.4747368421052632
+adaptation,v0.4.x,Reentrancy,41,9,0.21951219512195122
+adaptation,v0.4.x,Access Control,41,13,0.3170731707317073
+adaptation,v0.4.x,Arithmetic,41,6,0.14634146341463414
+adaptation,v0.4.x,Unchecked Return Values,41,3,0.07317073170731707
+adaptation,v0.4.x,DoS,41,2,0.04878048780487805
+adaptation,v0.4.x,Bad Randomness,41,0,0.0
+adaptation,v0.4.x,Front Running,41,0,0.0
+adaptation,v0.4.x,Time manipulation,41,10,0.24390243902439024
+adaptation,v0.5.x,Reentrancy,62,3,0.04838709677419355
+adaptation,v0.5.x,Access Control,62,28,0.45161290322580644
+adaptation,v0.5.x,Arithmetic,62,27,0.43548387096774194
+adaptation,v0.5.x,Unchecked Return Values,62,3,0.04838709677419355
+adaptation,v0.5.x,DoS,62,2,0.03225806451612903
+adaptation,v0.5.x,Bad Randomness,62,1,0.016129032258064516
+adaptation,v0.5.x,Front Running,62,0,0.0
+adaptation,v0.5.x,Time manipulation,62,6,0.0967741935483871
+adaptation,v0.6.x,Reentrancy,158,48,0.3037974683544304
+adaptation,v0.6.x,Access Control,158,113,0.7151898734177216
+adaptation,v0.6.x,Arithmetic,158,98,0.620253164556962
+adaptation,v0.6.x,Unchecked Return Values,158,101,0.6392405063291139
+adaptation,v0.6.x,DoS,158,26,0.16455696202531644
+adaptation,v0.6.x,Bad Randomness,158,4,0.02531645569620253
+adaptation,v0.6.x,Front Running,158,0,0.0
+adaptation,v0.6.x,Time manipulation,158,43,0.2721518987341772
+adaptation,v0.7.x,Reentrancy,50,12,0.24
+adaptation,v0.7.x,Access Control,50,30,0.6
+adaptation,v0.7.x,Arithmetic,50,35,0.7
+adaptation,v0.7.x,Unchecked Return Values,50,11,0.22
+adaptation,v0.7.x,DoS,50,6,0.12
+adaptation,v0.7.x,Bad Randomness,50,1,0.02
+adaptation,v0.7.x,Front Running,50,0,0.0
+adaptation,v0.7.x,Time manipulation,50,7,0.14
+adaptation,v0.8.x,Reentrancy,6855,4342,0.6334062727935813
+adaptation,v0.8.x,Access Control,6855,5060,0.738147337709701
+adaptation,v0.8.x,Arithmetic,6855,3750,0.5470459518599562
+adaptation,v0.8.x,Unchecked Return Values,6855,2504,0.3652808169219548
+adaptation,v0.8.x,DoS,6855,733,0.10692924872355944
+adaptation,v0.8.x,Bad Randomness,6855,80,0.011670313639679067
+adaptation,v0.8.x,Front Running,6855,5,0.0007293946024799417
+adaptation,v0.8.x,Time manipulation,6855,1549,0.22596644784828593
+test,v0.4.x,Reentrancy,9,0,0.0
+test,v0.4.x,Access Control,9,4,0.4444444444444444
+test,v0.4.x,Arithmetic,9,2,0.2222222222222222
+test,v0.4.x,Unchecked Return Values,9,1,0.1111111111111111
+test,v0.4.x,DoS,9,0,0.0
+test,v0.4.x,Bad Randomness,9,0,0.0
+test,v0.4.x,Front Running,9,0,0.0
+test,v0.4.x,Time manipulation,9,0,0.0
+test,v0.5.x,Reentrancy,13,2,0.15384615384615385
+test,v0.5.x,Access Control,13,9,0.6923076923076923
+test,v0.5.x,Arithmetic,13,4,0.3076923076923077
+test,v0.5.x,Unchecked Return Values,13,3,0.23076923076923078
+test,v0.5.x,DoS,13,0,0.0
+test,v0.5.x,Bad Randomness,13,1,0.07692307692307693
+test,v0.5.x,Front Running,13,0,0.0
+test,v0.5.x,Time manipulation,13,2,0.15384615384615385
+test,v0.6.x,Reentrancy,37,11,0.2972972972972973
+test,v0.6.x,Access Control,37,26,0.7027027027027027
+test,v0.6.x,Arithmetic,37,28,0.7567567567567568
+test,v0.6.x,Unchecked Return Values,37,23,0.6216216216216216
+test,v0.6.x,DoS,37,6,0.16216216216216217
+test,v0.6.x,Bad Randomness,37,0,0.0
+test,v0.6.x,Front Running,37,0,0.0
+test,v0.6.x,Time manipulation,37,12,0.32432432432432434
+test,v0.7.x,Reentrancy,23,18,0.782608695652174
+test,v0.7.x,Access Control,23,23,1.0
+test,v0.7.x,Arithmetic,23,21,0.9130434782608695
+test,v0.7.x,Unchecked Return Values,23,19,0.8260869565217391
+test,v0.7.x,DoS,23,16,0.6956521739130435
+test,v0.7.x,Bad Randomness,23,0,0.0
+test,v0.7.x,Front Running,23,0,0.0
+test,v0.7.x,Time manipulation,23,22,0.9565217391304348
+test,v0.8.x,Reentrancy,4118,1871,0.4543467702768334
+test,v0.8.x,Access Control,4118,2784,0.676056338028169
+test,v0.8.x,Arithmetic,4118,1626,0.39485186983972803
+test,v0.8.x,Unchecked Return Values,4118,891,0.21636716852841184
+test,v0.8.x,DoS,4118,245,0.05949490043710539
+test,v0.8.x,Bad Randomness,4118,110,0.026711996114618747
+test,v0.8.x,Front Running,4118,11,0.0026711996114618746
+test,v0.8.x,Time manipulation,4118,1669,0.4052938319572608

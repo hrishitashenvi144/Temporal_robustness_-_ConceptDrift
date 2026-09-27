@@ -1,0 +1,24 @@
+{
+  "feature_count": 215,
+  "random_state": 42,
+  "threshold": 0.5,
+  "training_samples": {
+    "historical": 9950,
+    "contemporary": 7166
+  },
+  "test_samples": {
+    "total": 4200,
+    "v0.8.x": 4118
+  },
+  "model_hyperparameters": {
+    "LogisticRegression": {
+      "class_weight": "balanced",
+      "max_iter": 1000
+    },
+    "RandomForest": {
+      "n_estimators": 200,
+      "class_weight": "balanced"
+    }
+  },
+  "description": "Phase\u202f5 experiment testing temporal stability of the feature\u2011label relationship. No 2024 data used for training or threshold selection."
+}

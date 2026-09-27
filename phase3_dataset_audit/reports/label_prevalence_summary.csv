@@ -1,0 +1,9 @@
+vulnerability_category,column_in_dive,positive_contracts,prevalence_pct
+reentrancy,Reentrancy,11400,51.052
+access_control,Access Control,16723,74.89
+arithmetic,Arithmetic,9542,42.732
+unchecked_low_level_calls,Unchecked Return Values,5911,26.471
+dos,DoS,3781,16.932
+bad_randomness,Bad Randomness,634,2.839
+front_running,Front Running,606,2.714
+time_manipulation,Time manipulation,6322,28.312

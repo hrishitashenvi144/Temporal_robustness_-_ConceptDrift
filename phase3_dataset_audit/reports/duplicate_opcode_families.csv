@@ -1,0 +1,3 @@
+family_id,family_size,representative_contract,sample_contracts,earliest_year,latest_year,distinct_years_count,cross_year,notes
+OPC_FAM_00001,2,6675,6675; 21683,1970,1970,1,False,Single-year duplicate family
+OPC_FAM_00002,2,11068,11068; 17245,1970,1970,1,False,Single-year duplicate family
