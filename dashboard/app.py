@@ -46,9 +46,9 @@ html, body, [class*="css"] {
     background-color: #fcfcfd;
 }
 
-#MainMenu {visibility: hidden;}
 footer {visibility: hidden;}
-header {visibility: hidden;}
+/* Keep the Streamlit header visible: it contains the sidebar reopen control. */
+header {visibility: visible !important;}
 
 .block-container {
     padding-top: 1.5rem !important;
@@ -306,6 +306,43 @@ section[data-testid="stSidebar"] strong {
 [data-baseweb="radio"] div {
     color: #0f172a !important;
 }
+
+/* Hide Streamlit's header/help overlays */
+header {visibility: hidden !important; height: 0 !important;}
+[data-testid="stHeader"] {visibility: hidden !important; height: 0 !important;}
+[data-testid="stToolbar"] {display: none !important;}
+[data-testid="stStatusWidget"] {display: none !important;}
+[data-testid="stSkillsNudgeAnchor"] {display: none !important;}
+
+/* Compact top-section buttons: neutral grey in every state */
+[data-testid="stButton"] button,
+[data-testid="stButton"] button[kind="primary"],
+[data-testid="stButton"] button[kind="secondary"],
+[data-testid="stButton"] button[kind="tertiary"] {
+    min-height: 32px !important;
+    height: 32px !important;
+    padding: 0.20rem 0.35rem !important;
+    font-size: 0.72rem !important;
+    border-radius: 6px !important;
+    border: 1px solid #dbe2ea !important;
+    background: #f1f5f9 !important;
+    background-color: #f1f5f9 !important;
+    color: #334155 !important;
+    box-shadow: none !important;
+}
+
+[data-testid="stButton"] button:hover,
+[data-testid="stButton"] button:active,
+[data-testid="stButton"] button:focus,
+[data-testid="stButton"] button[kind="primary"]:hover,
+[data-testid="stButton"] button[kind="secondary"]:hover,
+[data-testid="stButton"] button[kind="tertiary"]:hover {
+    border: 1px solid #cbd5e1 !important;
+    background: #e8edf3 !important;
+    background-color: #e8edf3 !important;
+    color: #1e293b !important;
+    box-shadow: none !important;
+}
 </style>
 """
 
@@ -381,7 +418,7 @@ META_P5 = load_json(DIR_P5 / "phase5_metadata.json")
 def format_academic_chart(fig, height=360, show_legend=True):
     fig.update_layout(
         template="plotly_white",
-        font=dict(family="Inter, -apple-system, sans-serif", size=12, color="#334155"),
+        font=dict(family="Inter, -apple-system, sans-serif", size=12, color="#111111"),
         height=height,
         margin=dict(l=40, r=20, t=35, b=35),
         showlegend=show_legend,
@@ -391,8 +428,9 @@ def format_academic_chart(fig, height=360, show_legend=True):
             y=1.02,
             xanchor="right",
             x=1,
-            font=dict(size=11),
+            font=dict(size=11, color="#111111"),
         ),
+        title_font=dict(color="#111111"),
         plot_bgcolor="#ffffff",
         paper_bgcolor="#ffffff",
     )
@@ -401,15 +439,20 @@ def format_academic_chart(fig, height=360, show_legend=True):
         gridwidth=1,
         gridcolor="#f1f5f9",
         linecolor="#cbd5e1",
-        tickfont=dict(size=11),
+        title_font=dict(size=12, color="#111111"),
+        tickfont=dict(size=11, color="#111111"),
     )
     fig.update_yaxes(
         showgrid=True,
         gridwidth=1,
         gridcolor="#f1f5f9",
         linecolor="#cbd5e1",
-        tickfont=dict(size=11),
+        title_font=dict(size=12, color="#111111"),
+        tickfont=dict(size=11, color="#111111"),
     )
+    for trace in fig.data:
+        if hasattr(trace, "textfont"):
+            trace.update(textfont=dict(color="#111111"))
     return fig
 
 # -----------------------------------------------------------------------------
@@ -418,34 +461,55 @@ def format_academic_chart(fig, height=360, show_legend=True):
 with st.sidebar:
     st.markdown('<div class="academic-tag">Research Project</div>', unsafe_allow_html=True)
     st.markdown("### Navigation")
-    
-    selected_page = st.radio(
-        label="Select Section",
-        options=[
-            "01 — Overview",
-            "02 — Dataset & Temporal Evolution",
-            "03 — Chronological Baseline",
-            "04 — Adaptation",
-            "05 — Historical vs Contemporary",
-            "06 — Conclusions",
-        ],
-        index=0,
-        label_visibility="collapsed",
-    )
-    
-    st.markdown("---")
     st.markdown(
         """
-        <div style="font-size: 0.75rem; color: #64748b; line-height: 1.4;">
-        <b>Temporal Robustness Study</b><br>
-        Dataset: DIVE (22,330 contracts)<br>
-        Span: 2016 – 2024<br>
-        Models: Multi-label LR & RF<br>
-        Features: 215 audited PRE metrics
+        <div style="font-size: 0.78rem; color: #64748b; line-height: 1.8;">
+        01 — Overview<br>
+        02 — Dataset &amp; Temporal Evolution<br>
+        03 — Chronological Baseline<br>
+        04 — Adaptation<br>
+        05 — Historical vs Contemporary<br>
+        06 — Conclusions
         </div>
         """,
         unsafe_allow_html=True,
     )
+
+    st.markdown("---")
+    st.markdown(
+        """
+        <div style="font-size: 0.75rem; color: #64748b; line-height: 1.4;">
+        <b>Temporal Robustness Study</b><br>Dataset: DIVE (22,330 contracts)<br>
+        Span: 2016 – 2024<br>Models: Multi-label LR &amp; RF<br>Features: 215 audited PRE metrics
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+# Always-visible, compact navigation buttons
+NAV_OPTIONS = [
+    "01 — Overview",
+    "02 — Dataset & Temporal Evolution",
+    "03 — Chronological Baseline",
+    "04 — Adaptation",
+    "05 — Historical vs Contemporary",
+    "06 — Conclusions",
+]
+if "selected_page" not in st.session_state:
+    st.session_state.selected_page = NAV_OPTIONS[0]
+
+nav_cols = st.columns(len(NAV_OPTIONS), gap="small")
+for index, (nav_col, page_name) in enumerate(zip(nav_cols, NAV_OPTIONS)):
+    with nav_col:
+        if st.button(
+            page_name,
+            key=f"top_nav_{index}",
+            use_container_width=True,
+            type="primary" if st.session_state.selected_page == page_name else "secondary",
+        ):
+            st.session_state.selected_page = page_name
+
+selected_page = st.session_state.selected_page
 
 # =============================================================================
 # PAGE 01 — OVERVIEW
@@ -994,286 +1058,165 @@ elif selected_page == "04 — Adaptation":
     with c_synth:
         st.markdown('<div class="box-title">Controlled Prototype (Phase 2 Benchmark)</div>', unsafe_allow_html=True)
         if not DF_P2.empty:
-            p2_static_new = DF_P2[(DF_P2["Period"] == "period_new") & (DF_P2["Model"] == "Static")]["F1"].values[0]
-            p2_adapt_new = DF_P2[(DF_P2["Period"] == "period_new") & (DF_P2["Model"] == "Adaptive_PostAdaptation")]["F1"].values[0]
-            
-            fig_p2 = go.Figure()
-            fig_p2.add_trace(go.Bar(
-                x=["Static Detector", "Adaptive Detector"],
-                y=[p2_static_new, p2_adapt_new],
-                marker_color=["#94a3b8", "#1e3a8a"],
-                text=[f"{p2_static_new:.3f}", f"{p2_adapt_new:.3f}"],
-                textposition="auto",
-            ))
-            fig_p2.update_layout(
-                yaxis_title="F1 Score on period_new",
-                yaxis=dict(range=[0, 1.0]),
-            )
-            st.plotly_chart(format_academic_chart(fig_p2, height=270, show_legend=False), use_container_width=True)
-            
-            st.markdown(
-                f"""
-                <div class="guardrail-box">
-                <b>Methodological Prototype Status:</b><br>
-                In the controlled Phase 2 synthetic experiment, an imposed feature shift degraded Static F1 to <b>{p2_static_new:.3f}</b>, and drift-aware retraining recovered F1 to <b>{p2_adapt_new:.3f}</b> (+{p2_adapt_new - p2_static_new:.3f} absolute, +46.3% relative).<br>
-                <b>Important Distinction:</b> Phase 2 represents a controlled proof-of-concept for adaptation algorithms; it is <i>not</i> evidence of natural temporal evolution in Ethereum smart contracts.
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+            p2 = DF_P2.copy()
+            p2.columns = [str(column).strip() for column in p2.columns]
 
+            period_col = next((column for column in p2.columns if column.lower() == "period"), None)
+            model_col = next((column for column in p2.columns if column.lower() == "model"), None)
+            f1_col = next((column for column in p2.columns if column.lower() == "f1"), None)
+
+            if period_col is None or model_col is None or f1_col is None:
+                st.warning("The Phase 2 benchmark CSV does not contain the expected Period, Model, and F1 columns.")
+            else:
+                def phase2_f1(period: str, model: str):
+                    matches = p2[
+                        (p2[period_col].astype(str).str.strip().str.lower() == period.lower())
+                        & (p2[model_col].astype(str).str.strip().str.lower() == model.lower())
+                    ]
+                    if matches.empty:
+                        return None
+                    return pd.to_numeric(matches[f1_col], errors="coerce").dropna().iloc[0]
+
+                p2_static_new = phase2_f1("period_new", "Static")
+                p2_adapt_new = phase2_f1("period_new", "Adaptive_PostAdaptation")
+
+                if p2_static_new is None or p2_adapt_new is None:
+                    st.warning("The expected Phase 2 Static and Adaptive benchmark rows were not found.")
+                else:
+                    fig_p2 = go.Figure()
+                    fig_p2.add_trace(go.Bar(
+                        x=["Static Detector", "Adaptive Detector"],
+                        y=[p2_static_new, p2_adapt_new],
+                        marker_color=["#94a3b8", "#1e3a8a"],
+                        text=[f"{p2_static_new:.3f}", f"{p2_adapt_new:.3f}"],
+                        textposition="auto",
+                    ))
+                    fig_p2.update_layout(
+                        yaxis_title="F1 Score on period_new",
+                        yaxis=dict(range=[0, 1.0]),
+                    )
+                    st.plotly_chart(format_academic_chart(fig_p2, height=270, show_legend=False), use_container_width=True)
+
+                    st.markdown(
+                        f"""
+                        <div class="guardrail-box">
+                        <b>Methodological Prototype Status:</b><br>
+                        In the controlled Phase 2 synthetic experiment, an imposed feature shift degraded Static F1 to <b>{p2_static_new:.3f}</b>, and drift-aware retraining recovered F1 to <b>{p2_adapt_new:.3f}</b> (+{p2_adapt_new - p2_static_new:.3f} absolute, +46.3% relative).<br>
+                        <b>Important Distinction:</b> Phase 2 represents a controlled proof-of-concept for adaptation algorithms; it is <i>not</i> evidence of natural temporal evolution in Ethereum smart contracts.
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
 # =============================================================================
-# PAGE 05 — HISTORICAL VS CONTEMPORARY (CENTRAL RESEARCH PAGE)
+# PAGE 05 — HISTORICAL VS CONTEMPORARY
 # =============================================================================
-elif selected_page == "05 — Historical vs Contemporary":
-    st.markdown('<div class="academic-tag">Section 05 · Feature–Label Stability (Phase 5)</div>', unsafe_allow_html=True)
+if selected_page == "05 — Historical vs Contemporary":
+    st.markdown('<div class="academic-tag">Section 05 · Feature–Label Stability</div>', unsafe_allow_html=True)
     st.markdown('<div class="page-title">Historical vs. Contemporary Training</div>', unsafe_allow_html=True)
-    st.markdown('<div class="page-subtitle">Evaluating models trained on distinct epochs (2016–2021 vs. 2023) against the exact same untouched 2024 test cohort</div>', unsafe_allow_html=True)
+    st.markdown('<div class="page-subtitle">Models trained on different cohorts, evaluated on the exact same 2024 test data</div>', unsafe_allow_html=True)
 
-    # Interactive Selectors
-    c_mod, c_coh = st.columns([1, 1])
-    with c_mod:
-        selected_model = st.radio(
-            "Select Machine Learning Architecture:",
-            ["RandomForest", "LogisticRegression"],
-            format_func=lambda m: "Random Forest (200 Trees)" if m == "RandomForest" else "Logistic Regression (StandardScaler)",
+    if META_P5:
+        meta_cols = st.columns(4)
+        with meta_cols[0]:
+            st.metric("Historical Training", f"{META_P5.get('training_samples', {}).get('historical', 0):,}")
+        with meta_cols[1]:
+            st.metric("Contemporary Training", f"{META_P5.get('training_samples', {}).get('contemporary', 0):,}")
+        with meta_cols[2]:
+            st.metric("2024 Test", f"{META_P5.get('test_samples', {}).get('total', 0):,}")
+        with meta_cols[3]:
+            st.metric("v0.8.x Test", f"{META_P5.get('test_samples', {}).get('v0.8.x', 0):,}")
+
+    if not DF_P5_ALL.empty:
+        eval_scope = st.radio(
+            "Evaluation scope",
+            ["All 2024 contracts", "Solidity v0.8.x only"],
             horizontal=True,
+            key="phase5_scope",
         )
-    with c_coh:
-        selected_eval_scope = st.radio(
-            "Select Test Cohort Stratification:",
-            ["All 2024 Contracts (N=4,200)", "Solidity v0.8.x Only (N=4,118)"],
-            horizontal=True,
+        phase5_df = DF_P5_ALL if eval_scope == "All 2024 contracts" else (
+            DF_P5_V08 if not DF_P5_V08.empty else DF_P5_ALL
         )
 
-    # Pick the appropriate Phase 5 CSV
-    is_v08 = "v0.8.x" in selected_eval_scope
-    active_p5_df = DF_P5_V08 if is_v08 else DF_P5_ALL
-    cohort_hist_tag = "historical_v08" if is_v08 else "historical"
-    cohort_cont_tag = "contemporary_v08" if is_v08 else "contemporary"
+        model = st.selectbox("Model", sorted(phase5_df["model"].dropna().unique().tolist()), key="phase5_model")
+        model_df = phase5_df[phase5_df["model"] == model].copy()
 
-    if not active_p5_df.empty:
-        # Extract Macro Rows
-        hist_macro = active_p5_df[(active_p5_df["model"] == selected_model) & (active_p5_df["training_cohort"] == cohort_hist_tag) & (active_p5_df["vulnerability"] == "macro")].iloc[0]
-        cont_macro = active_p5_df[(active_p5_df["model"] == selected_model) & (active_p5_df["training_cohort"] == cohort_cont_tag) & (active_p5_df["vulnerability"] == "macro")].iloc[0]
+        cohort_col = "training_cohort" if "training_cohort" in model_df.columns else "training_cohort"
+        cohorts = [c for c in ("historical", "contemporary", "historical_v08", "contemporary_v08") if c in model_df[cohort_col].dropna().unique()]
 
-        # Top Macro-Level Metric Strip
-        d_prec = cont_macro["precision"] - hist_macro["precision"]
-        d_rec = cont_macro["recall"] - hist_macro["recall"]
-        d_f1 = cont_macro["f1"] - hist_macro["f1"]
-        d_pr = cont_macro["pr_auc"] - hist_macro["pr_auc"]
-        d_fp = int(cont_macro["false_positives"] - hist_macro["false_positives"])
-        d_fn = int(cont_macro["false_negatives"] - hist_macro["false_negatives"])
-
-        st.markdown(
-            f"""
-            <div class="metric-row">
-                <div class="metric-cell">
-                    <div class="metric-cell-label">Macro Precision</div>
-                    <div class="metric-cell-value">{cont_macro['precision']:.4f}</div>
-                    <div class="metric-cell-sub">Hist: {hist_macro['precision']:.4f} ({d_prec:+.4f})</div>
-                </div>
-                <div class="metric-cell">
-                    <div class="metric-cell-label">Macro Recall</div>
-                    <div class="metric-cell-value">{cont_macro['recall']:.4f}</div>
-                    <div class="metric-cell-sub">Hist: {hist_macro['recall']:.4f} ({d_rec:+.4f})</div>
-                </div>
-                <div class="metric-cell">
-                    <div class="metric-cell-label">Macro F1 (τ=0.5)</div>
-                    <div class="metric-cell-value">{cont_macro['f1']:.4f}</div>
-                    <div class="metric-cell-sub">Hist: {hist_macro['f1']:.4f} ({d_f1:+.4f})</div>
-                </div>
-                <div class="metric-cell">
-                    <div class="metric-cell-label">Macro PR-AUC</div>
-                    <div class="metric-cell-value">{cont_macro['pr_auc']:.4f}</div>
-                    <div class="metric-cell-sub">Hist: {hist_macro['pr_auc']:.4f} (<b>{d_pr:+.4f}</b>)</div>
-                </div>
-                <div class="metric-cell">
-                    <div class="metric-cell-label">Total False Positives</div>
-                    <div class="metric-cell-value">{int(cont_macro['false_positives']):,}</div>
-                    <div class="metric-cell-sub">Hist: {int(hist_macro['false_positives']):,} (<b>{d_fp:+d}</b>)</div>
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-        # Per-Vulnerability Deep Dive
-        sub_hist = active_p5_df[(active_p5_df["model"] == selected_model) & (active_p5_df["training_cohort"] == cohort_hist_tag) & (active_p5_df["vulnerability"] != "macro")].set_index("vulnerability")
-        sub_cont = active_p5_df[(active_p5_df["model"] == selected_model) & (active_p5_df["training_cohort"] == cohort_cont_tag) & (active_p5_df["vulnerability"] != "macro")].set_index("vulnerability")
-
-        vuln_list = list(sub_hist.index)
-        delta_prauc = [sub_cont.loc[v, "pr_auc"] - sub_hist.loc[v, "pr_auc"] for v in vuln_list]
-        hist_prauc = [sub_hist.loc[v, "pr_auc"] for v in vuln_list]
-        cont_prauc = [sub_cont.loc[v, "pr_auc"] for v in vuln_list]
-
-        c_chart, c_table = st.columns([1, 1])
-
-        with c_chart:
-            st.markdown('<div class="box-title">PR-AUC Shift by Vulnerability Category</div>', unsafe_allow_html=True)
-            fig_vuln = go.Figure()
-            fig_vuln.add_trace(go.Bar(
-                y=vuln_list,
-                x=hist_prauc,
-                name="Historical Model (2016-21)",
-                orientation="h",
-                marker_color="#94a3b8",
-            ))
-            fig_vuln.add_trace(go.Bar(
-                y=vuln_list,
-                x=cont_prauc,
-                name="Contemporary Model (2023)",
-                orientation="h",
-                marker_color="#1e3a8a",
-            ))
-            fig_vuln.update_layout(
-                barmode="group",
-                xaxis_title="PR-AUC",
-                yaxis_title="",
-                yaxis=dict(autorange="reversed"),
-                xaxis=dict(range=[0, 1.05]),
-            )
-            st.plotly_chart(format_academic_chart(fig_vuln, height=380), use_container_width=True)
-
-        with c_table:
-            st.markdown('<div class="box-title">Detailed Per-Category Forensic Matrix</div>', unsafe_allow_html=True)
-            detail_records = []
-            for v in vuln_list:
-                h = sub_hist.loc[v]
-                c = sub_cont.loc[v]
-                detail_records.append({
-                    "Vulnerability": v,
-                    "Hist PR-AUC": f"{h['pr_auc']:.4f}",
-                    "Cont PR-AUC": f"{c['pr_auc']:.4f}",
-                    "Δ PR-AUC": f"{c['pr_auc'] - h['pr_auc']:+.4f}",
-                    "Hist FP": f"{int(h['false_positives']):,}",
-                    "Cont FP": f"{int(c['false_positives']):,}",
-                    "Δ FP": f"{int(c['false_positives'] - h['false_positives']):+d}",
-                    "Cont F1": f"{c['f1']:.4f}",
+        if cohorts:
+            comparison_rows = []
+            for cohort in cohorts:
+                cohort_df = model_df[model_df[cohort_col] == cohort]
+                comparison_rows.append({
+                    "cohort": cohort,
+                    "macro_f1": pd.to_numeric(cohort_df["f1"], errors="coerce").mean(),
+                    "macro_pr_auc": pd.to_numeric(cohort_df["pr_auc"], errors="coerce").mean(),
+                    "false_positives": pd.to_numeric(cohort_df["false_positives"], errors="coerce").sum(),
+                    "false_negatives": pd.to_numeric(cohort_df["false_negatives"], errors="coerce").sum(),
                 })
-            st.dataframe(pd.DataFrame(detail_records).set_index("Vulnerability"), use_container_width=True)
 
-        # Forensic Callouts for Crucial Categories
-        st.markdown('<div class="box-title">Vulnerability-Specific Scientific Interpretations</div>', unsafe_allow_html=True)
-        col_v1, col_v2, col_v3 = st.columns(3)
-        with col_v1:
-            st.markdown(
-                """
-                <div class="section-box">
-                    <div style="font-weight: 600; font-size: 0.85rem; color: #1e3a8a;">Arithmetic Vulnerabilities</div>
-                    <div style="font-size: 0.8rem; color: #334155; margin-top: 4px; line-height: 1.45;">
-                    <b>Massive Ranking Gain:</b> Contemporary RF gains <b>+0.3356 PR-AUC</b> (0.3959 → 0.7315) and cuts false positives by 74.8% (2,342 → 591).<br>
-                    <i>Context:</i> Directly aligns with Solidity ≥0.8.0 built-in overflow/underflow protection altering static heuristic validity.
-                    </div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-        with col_v2:
-            st.markdown(
-                """
-                <div class="section-box">
-                    <div style="font-weight: 600; font-size: 0.85rem; color: #1e3a8a;">Denial of Service (DoS)</div>
-                    <div style="font-size: 0.8rem; color: #334155; margin-top: 4px; line-height: 1.45;">
-                    <b>Substantial Ranking Gain:</b> Contemporary RF gains <b>+0.2361 PR-AUC</b> (0.2741 → 0.5102) while precision rises from 20.3% to 52.9%.<br>
-                    <i>Context:</i> False positives drop by 334 contracts without compromising true-positive detection sensitivity.
-                    </div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-        with col_v3:
-            st.markdown(
-                """
-                <div class="section-box">
-                    <div style="font-weight: 600; font-size: 0.85rem; color: #1e3a8a;">Reentrancy & Access Control</div>
-                    <div style="font-size: 0.8rem; color: #334155; margin-top: 4px; line-height: 1.45;">
-                    <b>Remarkable Temporal Robustness:</b> Both categories maintain &gt;0.985 PR-AUC and &gt;0.94 F1 regardless of training epoch.<br>
-                    <i>Context:</i> Core programmatic invariants (modifiers, call ordering) remain structurally preserved over time.
-                    </div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+            comparison_df = pd.DataFrame(comparison_rows)
+            comparison_df["label"] = comparison_df["cohort"].str.replace("_v08", "", regex=False).str.title()
 
-        # Compiler Stratification Note
+            c1, c2 = st.columns(2)
+            with c1:
+                fig = px.bar(comparison_df, x="label", y="macro_f1", text="macro_f1",
+                             color="label", color_discrete_sequence=["#94a3b8", "#1e3a8a"])
+                fig.update_traces(texttemplate="%{text:.3f}", textposition="outside")
+                fig.update_layout(yaxis_title="Mean vulnerability F1", yaxis=dict(range=[0, 1]), showlegend=False)
+                st.plotly_chart(format_academic_chart(fig, height=330), use_container_width=True)
+
+            with c2:
+                fig = px.bar(comparison_df, x="label", y="false_positives", text="false_positives",
+                             color="label", color_discrete_sequence=["#94a3b8", "#1e3a8a"])
+                fig.update_traces(texttemplate="%{text:,.0f}", textposition="outside")
+                fig.update_layout(yaxis_title="False positives", showlegend=False)
+                st.plotly_chart(format_academic_chart(fig, height=330), use_container_width=True)
+
+            table = model_df[["vulnerability", cohort_col, "precision", "recall", "f1", "pr_auc", "false_positives", "false_negatives"]].copy()
+            table.columns = ["Vulnerability", "Training Cohort", "Precision", "Recall", "F1", "PR-AUC", "False Positives", "False Negatives"]
+            st.dataframe(table, use_container_width=True)
+
         st.markdown(
-            """
-            <div class="guardrail-box">
-            <b>Compiler Stratification Finding:</b> Exactly 4,118 of the 4,200 contracts (98.05%) in the 2024 test cohort compile with Solidity <code>v0.8.x</code>. When evaluation is restricted strictly to <code>v0.8.x</code>, the Random Forest macro PR-AUC gain is <b>+0.0911</b> (compared to <b>+0.0898</b> on the full cohort), confirming that contemporary superiority is not driven by compiler mixture in the test set.
-            </div>
-            """,
+            '<div class="guardrail-box"><b>Phase 5 scope:</b> Both models use the same 2024 test cohort. '
+            'No 2024 data is used for training or threshold selection; 2024 labels are shown only at evaluation time.</div>',
             unsafe_allow_html=True,
         )
+    else:
+        st.warning("Phase 5 report CSV files are not available.")
 
 # =============================================================================
 # PAGE 06 — CONCLUSIONS
 # =============================================================================
-elif selected_page == "06 — Conclusions":
-    st.markdown('<div class="academic-tag">Section 06 · Summary & Roadmap</div>', unsafe_allow_html=True)
-    st.markdown('<div class="page-title">Research Conclusions & Next Steps</div>', unsafe_allow_html=True)
-    st.markdown('<div class="page-subtitle">Synthesizing findings, acknowledging empirical boundaries, and establishing Phase 6 roadmap</div>', unsafe_allow_html=True)
+if selected_page == "06 — Conclusions":
+    st.markdown('<div class="academic-tag">Section 06 · Conclusions</div>', unsafe_allow_html=True)
+    st.markdown('<div class="page-title">What Is Established—and What Remains Open</div>', unsafe_allow_html=True)
 
-    c1, c2, c3 = st.columns(3)
-
+    c1, c2 = st.columns(2)
     with c1:
-        st.markdown(
-            """
-            <div class="section-box" style="height: 100%;">
-                <div class="box-title" style="color: #0f172a;">1. Established by the Experiments</div>
-                <ul style="font-size: 0.85rem; color: #334155; line-height: 1.6; padding-left: 1.2rem; margin: 0;">
-                    <li><b>Temporal Degradation:</b> Static detectors trained on historical contracts experience systematic accuracy and ranking degradation on future deployment periods.</li>
-                    <li><b>Adaptation Benefit:</b> Retraining with intermediate chronological data recovers future-period discriminative power.</li>
-                    <li><b>P(X) & P(Y) Shift:</b> Statistically significant distributional shift across all 645 feature-cohort comparisons (FDR <i>p</i> &lt; 0.05).</li>
-                    <li><b>Distinct Error Profiles:</b> Contemporary training reduces false alarms by thousands of contracts on 2024 evaluations.</li>
-                    <li><b>Heterogeneous Sensitivity:</b> Reentrancy and Access Control remain robust; Arithmetic and DoS exhibit dramatic shifts.</li>
-                </ul>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+        st.markdown('<div class="box-title">Empirically Established</div>', unsafe_allow_html=True)
+        st.markdown("""
+        - Vulnerability detector performance changes under chronological distribution shift.
+        - Intermediate-period adaptation provides measurable recovery on the 2024 test cohort.
+        - Feature distributions and vulnerability prevalence change across deployment cohorts.
+        - Historical and contemporary training produce substantially different future error profiles.
+        - Restricting analysis to Solidity v0.8.x contracts does not eliminate the observed temporal differences.
+        """)
 
     with c2:
-        st.markdown(
-            """
-            <div class="section-box" style="height: 100%;">
-                <div class="box-title" style="color: #0f172a;">2. What is Not Established</div>
-                <ul style="font-size: 0.85rem; color: #334155; line-height: 1.6; padding-left: 1.2rem; margin: 0;">
-                    <li><b>Natural Concept Drift is Not Proven:</b> The evidence is consistent with evolving <i>P(Y|X)</i>, but does not prove causal concept drift.</li>
-                    <li><b>Support Mismatch:</b> Performance differences may reflect denser training coverage in modern feature space rather than a pure shift in conditional mapping.</li>
-                    <li><b>Tooling Artifacts:</b> DIVE labels rely on automated static analysis heuristics that may interact differently with older vs. newer ASTs.</li>
-                    <li><b>Clone Leakage:</b> Potential opcode-skeleton duplicate leakage across the 2023/2024 boundary has not yet been isolated.</li>
-                </ul>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+        st.markdown('<div class="box-title">Not Yet Established</div>', unsafe_allow_html=True)
+        st.markdown("""
+        - Whether distribution shift is predominantly input drift or feature–label relationship drift.
+        - Whether gains generalize to unseen projects, repositories, or future years beyond 2024.
+        - Whether automated DIVE labels match expert human vulnerability judgments.
+        - Whether source-clone and implementation leakage are fully controlled.
+        """)
 
-    with c3:
-        st.markdown(
-            """
-            <div class="section-box" style="height: 100%;">
-                <div class="box-title" style="color: #0f172a;">3. Recommended Phase 6 Study</div>
-                <ul style="font-size: 0.85rem; color: #334155; line-height: 1.6; padding-left: 1.2rem; margin: 0;">
-                    <li><b>Recalibration vs. Retraining:</b> Test whether decision-threshold optimization or Platt/Isotonic scaling recovers historical model performance without updating weights.</li>
-                    <li><b>Covariate Shift Reweighting:</b> Apply density ratio estimation (importance weighting) to historical samples to isolate true <i>P(Y|X)</i> shift from <i>P(X)</i> shift.</li>
-                    <li><b>Opcode Skeleton Clone Audit:</b> Filter the 15.47% duplicate skeleton families across the 2023/2024 boundary to control for project-level leakage.</li>
-                    <li><b>Targeted Robustness:</b> Develop drift-resilient feature subsets focused on temporally invariant structural metrics.</li>
-                </ul>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown(
-        """
-        <div class="rq-box">
-            <div class="rq-title">Concluding Research Takeaway</div>
-            <p class="rq-text" style="font-size: 0.92rem; font-weight: 400; color: #334155;">
-                Temporal evaluation in smart contract vulnerability detection is not merely an academic exercise; it reveals that static machine learning detectors deployed without adaptation produce massive false-positive inflation on future-period contracts. Drift-aware adaptation recovers ranking capability, but achieving rigorous, leak-free security auditing requires explicit controls for compiler evolution, class imbalance, and ecosystem-level structural shifts.
-            </p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    st.markdown('<div class="box-title">Recommended Next Steps</div>', unsafe_allow_html=True)
+    st.markdown("""
+    1. Add project-level or repository-level chronological splits to reduce clone leakage.
+    2. Compare drift-aware adaptation against stronger temporal baselines and uncertainty estimates.
+    3. Audit model errors using expert-reviewed smart-contract samples.
+    4. Test later deployment cohorts beyond 2024 under a frozen, preregistered protocol.
+    5. Separate compiler effects from contract-age and source-scale effects in causal or stratified analyses.
+    """)
