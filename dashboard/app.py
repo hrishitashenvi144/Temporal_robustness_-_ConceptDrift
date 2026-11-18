@@ -248,10 +248,102 @@ section[data-testid="stSidebar"] .block-container {
 div[data-testid="stHorizontalBlock"] {
     align-items: flex-start;
 }
+
+/* Explicit light dashboard theme for native Streamlit controls */
+[data-testid="stAppViewContainer"],
+[data-testid="stMain"],
+[data-testid="stMainBlockContainer"] {
+    background-color: #fcfcfd !important;
+    color: #0f172a !important;
+}
+
+[data-testid="stAppViewContainer"] p,
+[data-testid="stAppViewContainer"] li,
+[data-testid="stAppViewContainer"] label,
+[data-testid="stAppViewContainer"] span,
+[data-testid="stAppViewContainer"] strong,
+[data-testid="stAppViewContainer"] h1,
+[data-testid="stAppViewContainer"] h2,
+[data-testid="stAppViewContainer"] h3,
+[data-testid="stAppViewContainer"] h4,
+[data-testid="stAppViewContainer"] h5,
+[data-testid="stAppViewContainer"] h6,
+[data-testid="stAppViewContainer"] td,
+[data-testid="stAppViewContainer"] th {
+    color: #0f172a !important;
+}
+
+[data-testid="stAppViewContainer"] a {
+    color: #1e3a8a !important;
+}
+
+section[data-testid="stSidebar"] p,
+section[data-testid="stSidebar"] li,
+section[data-testid="stSidebar"] label,
+section[data-testid="stSidebar"] span,
+section[data-testid="stSidebar"] strong {
+    color: #0f172a !important;
+}
+
+.stTabs [data-baseweb="tab"] {
+    color: #475569 !important;
+}
+
+.stTabs [aria-selected="true"] {
+    color: #1e3a8a !important;
+}
+
+[data-testid="stDataFrame"] {
+    background-color: #ffffff !important;
+}
+
+[data-testid="stDataFrame"] * {
+    color: #0f172a !important;
+}
+
+[data-baseweb="select"] span,
+[data-baseweb="input"] input,
+[data-baseweb="radio"] div {
+    color: #0f172a !important;
+}
 </style>
 """
 
 st.markdown(ACADEMIC_CSS, unsafe_allow_html=True)
+
+# -----------------------------------------------------------------------------
+# Robust metric lookup helpers (used by Sections 03 and 04)
+# -----------------------------------------------------------------------------
+def find_metric_row(df: pd.DataFrame, model: str, period, vulnerability: str = "macro",
+                    prefer_last: bool = False):
+    """Return exactly one matching metric row, or None if the result is absent."""
+    if df is None or df.empty:
+        return None
+
+    required = {"model", "period", "vulnerability", "f1", "pr_auc"}
+    if not required.issubset(df.columns):
+        return None
+
+    normalized_period = str(period)
+    matched = df[
+        (df["model"].astype(str).str.strip() == str(model).strip())
+        & (df["period"].astype(str).str.strip() == normalized_period)
+        & (df["vulnerability"].astype(str).str.strip().str.lower() == vulnerability.lower())
+    ]
+    if matched.empty:
+        return None
+    return matched.iloc[-1] if prefer_last else matched.iloc[0]
+
+
+def safe_metric(row, metric: str, default: float = 0.0) -> float:
+    if row is None:
+        return default
+    try:
+        value = float(row[metric])
+        return value if np.isfinite(value) else default
+    except (KeyError, TypeError, ValueError):
+        return default
+
 
 # -----------------------------------------------------------------------------
 # Data Loading Utilities (Cached, Graceful Failover, No Synthetic Creation)
@@ -700,41 +792,52 @@ elif selected_page == "03 — Chronological Baseline":
         # Periods: 2022 (Val), 2023 (Adapt), 2024 (Frozen), 2024 (Adapted)
         periods_order = ["2022", "2023", "2024_Frozen", "2024_Adapted"]
         
-        # Extract from frozen_model_results
+        # Extract from frozen_model_results with exact, duplicate-safe matches
         lr_frozen = DF_FROZEN[(DF_FROZEN["model"] == "LogisticRegression") & (DF_FROZEN["vulnerability"] == "macro")]
         rf_frozen = DF_FROZEN[(DF_FROZEN["model"] == "RandomForest") & (DF_FROZEN["vulnerability"] == "macro")]
-        
-        # Extract from adaptation_results (last 2 rows are the adapted macro)
-        lr_adapt = DF_ADAPT[(DF_ADAPT["model"] == "LogisticRegression") & (DF_ADAPT["vulnerability"] == "macro")].iloc[-1]
-        rf_adapt = DF_ADAPT[(DF_ADAPT["model"] == "RandomForest") & (DF_ADAPT["vulnerability"] == "macro")].iloc[-1]
-        
+
+        lr_2022 = find_metric_row(DF_FROZEN, "LogisticRegression", "2022")
+        lr_2023 = find_metric_row(DF_FROZEN, "LogisticRegression", "2023")
+        lr_2024 = find_metric_row(DF_FROZEN, "LogisticRegression", "2024")
+        rf_2022 = find_metric_row(DF_FROZEN, "RandomForest", "2022")
+        rf_2023 = find_metric_row(DF_FROZEN, "RandomForest", "2023")
+        rf_2024 = find_metric_row(DF_FROZEN, "RandomForest", "2024")
+
+        # The adaptation table contains frozen and adapted 2024 macro rows;
+        # prefer the final row as the adapted result.
+        lr_adapt = find_metric_row(DF_ADAPT, "LogisticRegression", "2024", prefer_last=True)
+        rf_adapt = find_metric_row(DF_ADAPT, "RandomForest", "2024", prefer_last=True)
+
         lr_f1 = [
-            lr_frozen[lr_frozen["period"] == "2022"]["f1"].values[0],
-            lr_frozen[lr_frozen["period"] == "2023"]["f1"].values[0],
-            lr_frozen[lr_frozen["period"] == "2024"]["f1"].values[0],
-            lr_adapt["f1"],
+            safe_metric(lr_2022, "f1"),
+            safe_metric(lr_2023, "f1"),
+            safe_metric(lr_2024, "f1"),
+            safe_metric(lr_adapt, "f1"),
         ]
-        
+
         rf_f1 = [
-            rf_frozen[rf_frozen["period"] == "2022"]["f1"].values[0],
-            rf_frozen[rf_frozen["period"] == "2023"]["f1"].values[0],
-            rf_frozen[rf_frozen["period"] == "2024"]["f1"].values[0],
-            rf_adapt["f1"],
+            safe_metric(rf_2022, "f1"),
+            safe_metric(rf_2023, "f1"),
+            safe_metric(rf_2024, "f1"),
+            safe_metric(rf_adapt, "f1"),
         ]
-        
+
         lr_prauc = [
-            lr_frozen[lr_frozen["period"] == "2022"]["pr_auc"].values[0],
-            lr_frozen[lr_frozen["period"] == "2023"]["pr_auc"].values[0],
-            lr_frozen[lr_frozen["period"] == "2024"]["pr_auc"].values[0],
-            lr_adapt["pr_auc"],
+            safe_metric(lr_2022, "pr_auc"),
+            safe_metric(lr_2023, "pr_auc"),
+            safe_metric(lr_2024, "pr_auc"),
+            safe_metric(lr_adapt, "pr_auc"),
         ]
-        
+
         rf_prauc = [
-            rf_frozen[rf_frozen["period"] == "2022"]["pr_auc"].values[0],
-            rf_frozen[rf_frozen["period"] == "2023"]["pr_auc"].values[0],
-            rf_frozen[rf_frozen["period"] == "2024"]["pr_auc"].values[0],
-            rf_adapt["pr_auc"],
+            safe_metric(rf_2022, "pr_auc"),
+            safe_metric(rf_2023, "pr_auc"),
+            safe_metric(rf_2024, "pr_auc"),
+            safe_metric(rf_adapt, "pr_auc"),
         ]
+
+        if all(v == 0.0 for v in lr_f1 + rf_f1 + lr_prauc + rf_prauc):
+            st.warning("The expected macro-period metrics were not found in the report CSV files.")
 
         c_f1, c_prauc = st.columns(2)
         with c_f1:
@@ -834,28 +937,40 @@ elif selected_page == "04 — Adaptation":
     with c_real:
         st.markdown('<div class="box-title">Real-World DIVE Dataset: 2024 Frozen vs. Adapted</div>', unsafe_allow_html=True)
         
-        # Load 2024 frozen vs adapted metrics
-        lr_fr_row = DF_FROZEN[(DF_FROZEN["model"] == "LogisticRegression") & (DF_FROZEN["period"] == "2024") & (DF_FROZEN["vulnerability"] == "macro")].iloc[0]
-        lr_ad_row = DF_ADAPT[(DF_ADAPT["model"] == "LogisticRegression") & (DF_ADAPT["period"] == "2024") & (DF_ADAPT["vulnerability"] == "macro")].iloc[-1]
-        
-        rf_fr_row = DF_FROZEN[(DF_FROZEN["model"] == "RandomForest") & (DF_FROZEN["period"] == "2024") & (DF_FROZEN["vulnerability"] == "macro")].iloc[0]
-        rf_ad_row = DF_ADAPT[(DF_ADAPT["model"] == "RandomForest") & (DF_ADAPT["period"] == "2024") & (DF_ADAPT["vulnerability"] == "macro")].iloc[-1]
-        
+        # Load 2024 frozen vs adapted metrics using exact matches
+        lr_fr_row = find_metric_row(DF_FROZEN, "LogisticRegression", "2024")
+        lr_ad_row = find_metric_row(DF_ADAPT, "LogisticRegression", "2024", prefer_last=True)
+
+        rf_fr_row = find_metric_row(DF_FROZEN, "RandomForest", "2024")
+        rf_ad_row = find_metric_row(DF_ADAPT, "RandomForest", "2024", prefer_last=True)
+
+        if any(row is None for row in (lr_fr_row, lr_ad_row, rf_fr_row, rf_ad_row)):
+            st.warning("Some 2024 frozen/adapted macro metrics are missing from the report CSV files.")
+
+        lr_fr_f1 = safe_metric(lr_fr_row, "f1")
+        lr_fr_prauc = safe_metric(lr_fr_row, "pr_auc")
+        lr_ad_f1 = safe_metric(lr_ad_row, "f1")
+        lr_ad_prauc = safe_metric(lr_ad_row, "pr_auc")
+        rf_fr_f1 = safe_metric(rf_fr_row, "f1")
+        rf_fr_prauc = safe_metric(rf_fr_row, "pr_auc")
+        rf_ad_f1 = safe_metric(rf_ad_row, "f1")
+        rf_ad_prauc = safe_metric(rf_ad_row, "pr_auc")
+
         fig_rec = go.Figure()
         fig_rec.add_trace(go.Bar(
             name="2024 Frozen",
             x=["LR Macro-F1", "LR PR-AUC", "RF Macro-F1", "RF PR-AUC"],
-            y=[lr_fr_row["f1"], lr_fr_row["pr_auc"], rf_fr_row["f1"], rf_fr_row["pr_auc"]],
+            y=[lr_fr_f1, lr_fr_prauc, rf_fr_f1, rf_fr_prauc],
             marker_color="#94a3b8",
-            text=[f"{v:.3f}" for v in [lr_fr_row["f1"], lr_fr_row["pr_auc"], rf_fr_row["f1"], rf_fr_row["pr_auc"]]],
+            text=[f"{v:.3f}" for v in [lr_fr_f1, lr_fr_prauc, rf_fr_f1, rf_fr_prauc]],
             textposition="auto",
         ))
         fig_rec.add_trace(go.Bar(
             name="2024 Adapted",
             x=["LR Macro-F1", "LR PR-AUC", "RF Macro-F1", "RF PR-AUC"],
-            y=[lr_ad_row["f1"], lr_ad_row["pr_auc"], rf_ad_row["f1"], rf_ad_row["pr_auc"]],
+            y=[lr_ad_f1, lr_ad_prauc, rf_ad_f1, rf_ad_prauc],
             marker_color="#1e293b",
-            text=[f"{v:.3f}" for v in [lr_ad_row["f1"], lr_ad_row["pr_auc"], rf_ad_row["f1"], rf_ad_row["pr_auc"]]],
+            text=[f"{v:.3f}" for v in [lr_ad_f1, lr_ad_prauc, rf_ad_f1, rf_ad_prauc]],
             textposition="auto",
         ))
         fig_rec.update_layout(
@@ -869,8 +984,8 @@ elif selected_page == "04 — Adaptation":
             f"""
             <div style="font-size: 0.85rem; color: #334155;">
             <b>Empirical Delta Summary on 2024 Test Cohort:</b><br>
-            • <b>Logistic Regression:</b> Macro-F1: <code>{lr_fr_row['f1']:.4f} → {lr_ad_row['f1']:.4f}</code> (<b>+{lr_ad_row['f1']-lr_fr_row['f1']:.4f}</b>) | PR-AUC: <code>{lr_fr_row['pr_auc']:.4f} → {lr_ad_row['pr_auc']:.4f}</code> (<b>+{lr_ad_row['pr_auc']-lr_fr_row['pr_auc']:.4f}</b>)<br>
-            • <b>Random Forest:</b> Macro-F1: <code>{rf_fr_row['f1']:.4f} → {rf_ad_row['f1']:.4f}</code> (<b>+{rf_ad_row['f1']-rf_fr_row['f1']:.4f}</b>) | PR-AUC: <code>{rf_fr_row['pr_auc']:.4f} → {rf_ad_row['pr_auc']:.4f}</code> (<b>+{rf_ad_row['pr_auc']-rf_fr_row['pr_auc']:.4f}</b>)
+            • <b>Logistic Regression:</b> Macro-F1: <code>{lr_fr_f1:.4f} → {lr_ad_f1:.4f}</code> (<b>+{lr_ad_f1-lr_fr_f1:.4f}</b>) | PR-AUC: <code>{lr_fr_prauc:.4f} → {lr_ad_prauc:.4f}</code> (<b>+{lr_ad_prauc-lr_fr_prauc:.4f}</b>)<br>
+            • <b>Random Forest:</b> Macro-F1: <code>{rf_fr_f1:.4f} → {rf_ad_f1:.4f}</code> (<b>+{rf_ad_f1-rf_fr_f1:.4f}</b>) | PR-AUC: <code>{rf_fr_prauc:.4f} → {rf_ad_prauc:.4f}</code> (<b>+{rf_ad_prauc-rf_fr_prauc:.4f}</b>)
             </div>
             """,
             unsafe_allow_html=True,
